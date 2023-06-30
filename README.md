@@ -48,8 +48,42 @@ What is Observability?
 
 - Grafana provides `Observability` which may be divided into `Monitor`, `Logs`, and `Alerts`
 - For `Logging`, `Loki` should be used, and `Prometheus` is not the best option as it is widely used for `time-series database`.
-Diff between Grafana and Prometheus :
+Diff between Grafana(Loki) and Prometheus :
 
+- Loki and Prometheus are both open-source tools. While `Loki` is a `log aggregation tool`, `Prometheus` is a `metrics monitoring tool`.
+- Loki's design is inspired by Prometheus but for `logs`. 
 - Prometheus collects `metrics` whereas `Grafana` is used as a `Datastore`
 
---- stopped 3 min ---
+Grafana workflow : 
+- `Promtail` captures and delivers to `Loki` and `Loki` routes those to `Grafana`
+
+  `Promtail` --> `Loki` ---> `Grafana`
+
+## Hands-on Monitoring and Visualization Project:
+
+Create an AWS EC2 instance(Ubuntu,t2 micro,security:allow all) 
+
+![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/f05d1c61-a646-4a9e-8e2c-be09bd4f318c)
+
+Installation: run the below commands
+
+https://docs.google.com/document/d/1kHhk2LYss_c2pbBCCSXo4sqaqwNF3bj_MIiqm8L5b1U/edit
+
+Note: Install the `stable release version`  in the above doc.
+
+
+Before installing `Loki` and `Promtail`,
+
+run the `grafana-server`: 
+```
+sudo systemctl start grafana-server
+
+sudo systemctl enable grafana-server
+```
+- Grafana usually runs on port `3000`, we can enable that in SG/inbound:
+
+  ![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/31859d8f-07cd-4eaf-9972-2a687b1e5ad8)
+
+- To open the Grafana-server, open: public_ip_address:3000
+- the username and password for grafana are : `admin`, `admin`
+- 
