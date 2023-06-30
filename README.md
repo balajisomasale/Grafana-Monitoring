@@ -85,5 +85,111 @@ sudo systemctl enable grafana-server
   ![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/31859d8f-07cd-4eaf-9972-2a687b1e5ad8)
 
 - To open the Grafana-server, open: public_ip_address:3000
-- the username and password for grafana are : `admin`, `admin`
-- 
+- Default username and password for grafana are : `admin`, `admin`
+
+  ![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/e29cc80c-b9b3-4580-8f50-4513a57fb5f5)
+
+  Add the data source :
+
+  ![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/fa1a83d8-6038-4431-bff0-ea6704330864)
+
+Now, we can integrate with Loki, Prometheus, or anything based on use case.
+
+For Grafana with Loki, we need to install `Loki and promtail` using docker.
+
+```
+# Install Docker
+
+sudo apt-get install docker.io -y
+```
+![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/f4bda3fa-bff4-42da-ae85-c7ccc1cf6675)
+
+give permissions to the current user : `sudo usermod -aG docker $USER`
+
+Note: if it does not work, restart the server and it will work.
+
+```
+
+# Download Loki Config
+
+wget https://raw.githubusercontent.com/grafana/loki/v2.8.0/cmd/loki/loki-local-config.yaml -O loki-config.yaml
+
+# Run Loki Docker container
+
+docker run -d --name loki -v $(pwd):/mnt/config -p 3100:3100 grafana/loki:2.8.0 --config.file=/mnt/config/loki-config.yaml
+
+```
+![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/fb551f0d-a66d-41f9-8dbd-b5a6ba97527d)
+
+`Loki docker container` is running on `3100` 
+
+- add port `3100` to SG/inbound 
+  ![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/a8cf39ce-df7c-4b49-b29c-96ec60b47176)
+
+- Go to the URL: -> public_ip_address:3100/ready
+
+```
+Download Promtail Config
+
+wget https://raw.githubusercontent.com/grafana/loki/v2.8.0/clients/cmd/promtail/promtail-docker-config.yaml -O promtail-config.yaml
+
+Run Promtail Docker container
+
+docker run -d --name promtail -v $(pwd):/mnt/config -v /var/log:/var/log --link loki grafana/promtail:2.8.0 --config.file=/mnt/config/promtail-config.yaml
+
+# carefully observe the above command, as there is `--link` that is used to connect from Promtail to Loki so that it can share the info and then
+# Loki can send those logs to Grafana 
+
+```
+![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/ed4fab3a-5707-4e6a-a9ee-da15f3b429a3)
+
+## Adding Datastore in Grafana Dashboard:
+
+- Make sure both docker containers are running and linked up correctly from promtail to loki
+- once it is done, open the Grafana dashboard : `public_ip_address:3000` and add the datasource : Loki 
+- Add the localhost address of Loki : `http://localhost:3100`
+  ![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/18634a60-39de-48f7-9008-3a0959fb7882)
+
+- Once we hit `explore`, we will get:
+
+  ![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/8e457d46-36d3-4f09-9d0b-658ce5e8c66d)
+
+- select the jobs and run the query :
+  
+  ![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/e1c463cb-0720-41d2-b068-13ad5f28d735)
+
+- How and from where it is working ?
+
+  - The path and jobs are given in `promtail.yml` that we pulled intially
+
+    ![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/04b8fcc4-1947-460e-8d2f-3dd36067a4d6)
+
+  - we can go to that job path: `/var/log/grafana`
+
+    ![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/f395170a-a04a-407a-9506-305b5f705680)
+ 
+    we can see all the data but not formatted.
+    ![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/4f4f4696-430c-46ec-95c1-5ee763172d1a)
+
+### Creating a job for Promtail to send data to Loki:
+
+- update the `promtail.yml` with a new label,job and location so that it can pick data from this location
+  
+```
+  - targets:
+      - localhost
+    labels:
+      job: balaji_grafana_logs
+      __path__: /var/log/grafana/*log
+```
+- we need to restart the promtail docker container: `docker restart container_id`
+
+  ![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/cab2db8e-5ca6-4d63-b0ff-ff3cf33fb3f5)
+
+## Creating a Grafana Dashboard : 
+
+- once the data/logs are flowing to grafana UI, simply click `Add to Dashboard`
+
+  ![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/4178a24c-60c5-430e-be87-685417fde897)
+
+  
