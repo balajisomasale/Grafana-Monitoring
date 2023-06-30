@@ -192,4 +192,32 @@ docker run -d --name promtail -v $(pwd):/mnt/config -v /var/log:/var/log --link 
 
   ![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/4178a24c-60c5-430e-be87-685417fde897)
 
-  
+- we can choose to visualize and other:
+
+  ![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/68d487e8-a312-46a9-8d8c-c795b923f4d6)
+
+  ![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/e0993173-b7a0-452d-b5c2-d668ffa34575)
+
+--------------------------------------
+## Grafana Project: 
+
+Objective: Generate a graph that shows the number of words `Nginx` is repeated.
+
+### step 1: Install Nginx server:
+
+```
+  sudo apt-get install nginx
+```
+- Go back to the Grafana dashboard, add a filter with `operation>range functions> rate` as below:
+![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/20fec113-5725-4669-96cb-20617a272db5)
+
+![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/44d46da8-6127-4d41-9eb3-9d314a41967e)
+
+Adding more visualisations : 
+- Add `error` in the field and use `operations > sum `
+
+![image](https://github.com/balajisomasale/Grafana-Monitoring/assets/35003840/6b05d82f-a021-4219-a098-80a5270f75c6)
+
+
+---- EOF --- 
+
